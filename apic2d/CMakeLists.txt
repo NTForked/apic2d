@@ -1,4 +1,4 @@
-# FOSSSim Executable
+# APIC2D Executable
 
 append_files (Headers "h" . pcgsolver)
 append_files (Sources "cpp" . pcgsolver)

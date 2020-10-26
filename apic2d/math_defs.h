@@ -1,11 +1,26 @@
-#ifndef __MATH_DEFS_H__
-#define __MATH_DEFS_H__
+// Copyright 2016 Raymond Yun Fei, Christopher Batty, Robert Bridson
+//
+// Licensed under the Apache License,
+// Version 2.0(the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+#ifndef APIC2D_MATH_DEFS_H_
+#define APIC2D_MATH_DEFS_H_
 
 #include <Eigen/Core>
-#include <Eigen/StdVector>
-#include <Eigen/Sparse>
 #include <Eigen/Dense>
+#include <Eigen/Sparse>
 #include <Eigen/SparseQR>
+#include <Eigen/StdVector>
 
 typedef double scalar;
 typedef unsigned long long uint64;
@@ -13,9 +28,8 @@ typedef unsigned long long uint64;
 struct int_scalar {
   int i;
   scalar v;
-  
-  inline bool operator() (const int_scalar& struct1, const int_scalar& struct2)
-  {
+
+  inline bool operator()(const int_scalar& struct1, const int_scalar& struct2) {
     return (struct1.v < struct2.v);
   }
 };
@@ -475,9 +489,9 @@ typedef Eigen::Matrix<int, Eigen::Dynamic, Eigen::Dynamic> MatrixXi;
 
 typedef Eigen::SparseMatrix<scalar> SparseXs;
 typedef Eigen::Triplet<scalar> Triplets;
-typedef std::vector< Triplets > TripletXs;
+typedef std::vector<Triplets> TripletXs;
 typedef Eigen::Triplet<int> Tripleti;
-typedef std::vector< Tripleti > TripletXi;
+typedef std::vector<Tripleti> TripletXi;
 
 template <unsigned N>
 using Vectors = Eigen::Matrix<scalar, N, 1>;
@@ -514,6 +528,6 @@ using Blocki = Eigen::Block<int, N, N>;
 
 template <unsigned N>
 using Blockf = Eigen::Block<float, N, N>;
-//typedef Matrix<int, 1, 2> RowVector2i;
+// typedef Matrix<int, 1, 2> RowVector2i;
 
-#endif
+#endif  // APIC2D_MATH_DEFS_H_
