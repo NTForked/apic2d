@@ -15,7 +15,7 @@ Zhu, Yongning, and Robert Bridson. "Animating sand as a fluid." ACM Transactions
 
 Brackbill, Jeremiah U., and Hans M. Ruppel. "FLIP: A method for adaptively zoned, particle-in-cell calculations of fluid flows in two dimensions." Journal of Computational physics 65.2 (1986): 314-343.
 
-The general FLIP integrator is contributed by Qi Guo.
+The generalized FLIP is co-developed with Qi Guo and Ming Gao.
 
 It contains multiple integrators that you may switch and compare through changing the `integration_scheme` variable in the code. Its value can be one of the following:
 ```
@@ -24,9 +24,9 @@ IT_FLIP_BRACKBILL: Jeremiah U. Brackbill's FLIP scheme
 IT_FLIP_ZHU_BRIDSON: Yongning Zhu and Robert Bridson's FLIP scheme
 IT_FLIP_JIANG: Chenfanfu Jiang's FLIP scheme
 IT_APIC: affine particle-in-cell (APIC)
-IT_AFLIP_BRACKBILL: Affine version of Brackbill's FLIP
+IT_AFLIP_BRACKBILL: affine version of Brackbill's FLIP
 IT_AFLIP_ZHU_BRIDSON: Affine version of Zhu & Bridson's FLIP
-IT_AFLIP_JIANG: Affine version of Jiang's FLIP
+IT_AFLIP_JIANG: affine version of Jiang's FLIP
 ```
 
 We also noticed that each of these integrators is a specific case of a more general one, where we have a general integrator for affine FLIP (AFLIP) integration (refer to the `map_g2p_aflip_general` function in the code):
