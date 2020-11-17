@@ -57,7 +57,8 @@
 // IT_AFLIP_BRACKBILL: Affine version of Brackbill's FLIP
 // IT_AFLIP_BRIDSON: Affine version of Bridson's FLIP
 // IT_AFLIP_JIANG: Affine version of Jiang's FLIP
-const FluidSim::INTEGRATOR_TYPE integration_scheme = FluidSim::IT_APIC;
+const FluidSim::INTEGRATOR_TYPE integration_scheme =
+    FluidSim::IT_APIC;
 
 const scalar flip_coefficient = 0.97f;
 const scalar source_velocity = 40.0;
@@ -775,7 +776,7 @@ void FluidSim::map_p2g() {
  */
 void FluidSim::map_g2p_pic(float dt) {
   // PIC is a specific case of a more general (Affine) FLIP scheme
-  map_g2p_aflip_general(dt, 0.0, 0.0, 0.0, 0.0);
+  map_g2p_aflip_general(dt, 0.0, 0.0, 1.0, 0.0);
 }
 
 /*!
@@ -794,7 +795,7 @@ void FluidSim::map_g2p_flip_brackbill(float dt,
 void FluidSim::map_g2p_flip_bridson(float dt, const scalar lagrangian_ratio) {
   // Bridson's method is equivalent to FLIP with symplectic Euler applied
   // on the Lagrangian velocity
-  map_g2p_aflip_general(dt, lagrangian_ratio, 1.0, 0.0, 0.0);
+  map_g2p_aflip_general(dt, lagrangian_ratio, 1.0, 1.0, 0.0);
 }
 
 /*!
@@ -803,7 +804,7 @@ void FluidSim::map_g2p_flip_bridson(float dt, const scalar lagrangian_ratio) {
 void FluidSim::map_g2p_flip_jiang(float dt, const scalar lagrangian_ratio) {
   // Jiang's method is equivalent to FLIP with explicit Euler applied
   // on the Lagrangian velocity
-  map_g2p_aflip_general(dt, lagrangian_ratio, 0.0, 0.0, 0.0);
+  map_g2p_aflip_general(dt, lagrangian_ratio, 0.0, 1.0, 0.0);
 }
 
 /*!
@@ -811,16 +812,17 @@ void FluidSim::map_g2p_flip_jiang(float dt, const scalar lagrangian_ratio) {
  */
 void FluidSim::map_g2p_apic(float dt) {
   // APIC is a specific case of a more general Affine FLIP scheme
-  map_g2p_aflip_general(dt, 0.0, 0.0, 0.0, 1.0);
+  map_g2p_aflip_general(dt, 0.0, 0.0, 1.0, 1.0);
 }
 
 /*!
  \brief  Affine FLIP scheme modified from the FLIP scheme by Brackbill
  */
-void FluidSim::map_g2p_aflip_brackbill(float dt, const scalar damping) {
+void FluidSim::map_g2p_aflip_brackbill(float dt,
+                                       const scalar eulerian_symplecticity) {
   // Brackbill's method is equivalent to FLIP with explicit Euler applied
   // on the Lagrangian velocity, with an additional positional damping used
-  map_g2p_aflip_general(dt, 1.0, 0.0, damping, 1.0);
+  map_g2p_aflip_general(dt, 1.0, 0.0, eulerian_symplecticity, 1.0);
 }
 
 /*!
@@ -829,7 +831,7 @@ void FluidSim::map_g2p_aflip_brackbill(float dt, const scalar damping) {
 void FluidSim::map_g2p_aflip_bridson(float dt, const scalar lagrangian_ratio) {
   // Bridson's method is equivalent to FLIP with symplectic Euler applied
   // on the Lagrangian velocity
-  map_g2p_aflip_general(dt, lagrangian_ratio, 1.0, 0.0, 1.0);
+  map_g2p_aflip_general(dt, lagrangian_ratio, 1.0, 1.0, 1.0);
 }
 
 /*!
@@ -838,7 +840,7 @@ void FluidSim::map_g2p_aflip_bridson(float dt, const scalar lagrangian_ratio) {
 void FluidSim::map_g2p_aflip_jiang(float dt, const scalar lagrangian_ratio) {
   // Jiang's method is equivalent to FLIP with explicit Euler applied
   // on the Lagrangian velocity
-  map_g2p_aflip_general(dt, lagrangian_ratio, 0.0, 0.0, 1.0);
+  map_g2p_aflip_general(dt, lagrangian_ratio, 0.0, 1.0, 1.0);
 }
 
 /*!
@@ -859,8 +861,8 @@ void FluidSim::map_g2p_aflip_general(float dt, const scalar lagrangian_ratio,
     p.v = next_grid_velocity +
           (lagrangian_velocity - original_grid_velocity) * lagrangian_ratio;
     p.c = get_affine_matrix(p.x) * affine_ratio;
-    p.x += (next_grid_velocity +
-            (original_grid_velocity - next_grid_velocity) *
+    p.x += (original_grid_velocity +
+            (next_grid_velocity - original_grid_velocity) *
                 eulerian_symplecticity +
             (lagrangian_velocity - original_grid_velocity) * lagrangian_ratio *
                 lagrangian_symplecticity) *
