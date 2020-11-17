@@ -20,7 +20,7 @@
 // zoned, particle-in-cell calculations of fluid flows in two dimensions."
 // Journal of Computational physics 65.2 (1986): 314-343.
 //
-// The generalized FLIP is contributed by Qi Guo
+// The generalized FLIP is co-developed with Qi Guo and Ming Gao
 //
 // Licensed under the Apache License,
 // Version 2.0(the "License");
