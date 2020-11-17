@@ -150,15 +150,7 @@ class FluidSim {
   /*! P2G scheme */
   void map_p2g();
 
-  /*! different G2P schemes */
-  void map_g2p_pic(float dt);
-  void map_g2p_apic(float dt);
-  void map_g2p_flip_brackbill(float dt, const scalar damping);
-  void map_g2p_flip_bridson(float dt, const scalar lagrangian_ratio);
-  void map_g2p_flip_jiang(float dt, const scalar lagrangian_ratio);
-  void map_g2p_aflip_brackbill(float dt, const scalar damping);
-  void map_g2p_aflip_bridson(float dt, const scalar lagrangian_ratio);
-  void map_g2p_aflip_jiang(float dt, const scalar lagrangian_ratio);
+  /*! FLIP schemes */
   void map_g2p_aflip_general(float dt, const scalar lagrangian_ratio,
                              const scalar lagrangian_symplecticity,
                              const scalar eulerian_symplecticity,
@@ -166,9 +158,7 @@ class FluidSim {
 
   void save_velocity();
 
-  void compute_cohesion_force();
   void compute_density();
-  void compute_normal();
   void correct(scalar dt);
   void resample(Vector2s& p, Vector2s& u, Matrix2s& c);
 

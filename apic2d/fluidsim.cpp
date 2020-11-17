@@ -60,7 +60,7 @@
 const FluidSim::INTEGRATOR_TYPE integration_scheme =
     FluidSim::IT_APIC;
 
-const scalar flip_coefficient = 0.97f;
+const scalar lagrangian_ratio = 0.97f;
 const scalar source_velocity = 40.0;
 const int particle_correction_step = 1;
 
@@ -265,35 +265,55 @@ void FluidSim::advance(scalar dt) {
 
   switch (integration_scheme) {
     case IT_PIC:
-      map_g2p_pic(dt);
+      // PIC is a specific case of a more general (Affine) FLIP scheme
+      map_g2p_aflip_general(dt, 0.0, 0.0, 1.0, 0.0);
       break;
 
     case IT_FLIP_BRACKBILL:
-      map_g2p_flip_brackbill(dt, 0.5);
+      // FLIP scheme used in the 1986 paper from Brackbill
+      // Brackbill's method is equivalent to FLIP with explicit Euler applied
+      // on the Lagrangian velocity, with an additional positional damping used
+      map_g2p_aflip_general(dt, 1.0, 0.0, 0.5, 0.0);
       break;
 
     case IT_FLIP_BRIDSON:
-      map_g2p_flip_bridson(dt, flip_coefficient);
+      // FLIP scheme from Bridson (without RK2)
+      // Bridson's method is equivalent to FLIP with symplectic Euler applied
+      // on the Lagrangian velocity
+      map_g2p_aflip_general(dt, lagrangian_ratio, 1.0, 1.0, 0.0);
       break;
 
     case IT_FLIP_JIANG:
-      map_g2p_flip_jiang(dt, flip_coefficient);
+      // FLIP scheme used in the APIC paper from Jiang et al.
+      // Jiang's method is equivalent to FLIP with explicit Euler applied
+      // on the Lagrangian velocity
+      map_g2p_aflip_general(dt, lagrangian_ratio, 0.0, 1.0, 0.0);
       break;
 
     case IT_APIC:
-      map_g2p_apic(dt);
+      // APIC is a specific case of a more general Affine FLIP scheme
+      map_g2p_aflip_general(dt, 0.0, 0.0, 1.0, 1.0);
       break;
 
     case IT_AFLIP_BRACKBILL:
-      map_g2p_aflip_brackbill(dt, 0.5);
+      // Affine FLIP scheme modified from the FLIP scheme by Brackbill
+      // Brackbill's method is equivalent to FLIP with explicit Euler applied
+      // on the Lagrangian velocity, with an additional positional damping used
+      map_g2p_aflip_general(dt, 1.0, 0.0, 0.5, 1.0);
       break;
 
     case IT_AFLIP_BRIDSON:
-      map_g2p_aflip_bridson(dt, flip_coefficient);
+      // Affine FLIP scheme modified from the FLIP scheme by Bridson
+      // Bridson's method is equivalent to FLIP with symplectic Euler applied
+      // on the Lagrangian velocity
+      map_g2p_aflip_general(dt, lagrangian_ratio, 1.0, 1.0, 1.0);
       break;
 
     case IT_AFLIP_JIANG:
-      map_g2p_aflip_jiang(dt, flip_coefficient);
+      // Affine FLIP scheme modified from the FLIP scheme by Jiang
+      // Jiang's method is equivalent to FLIP with explicit Euler applied
+      // on the Lagrangian velocity
+      map_g2p_aflip_general(dt, lagrangian_ratio, 0.0, 1.0, 1.0);
       break;
 
     default:
@@ -769,78 +789,6 @@ void FluidSim::map_p2g() {
 
       v(i, j) = sumw ? sumu / sumw : 0.0;
     }
-}
-
-/*!
- \brief  PIC scheme
- */
-void FluidSim::map_g2p_pic(float dt) {
-  // PIC is a specific case of a more general (Affine) FLIP scheme
-  map_g2p_aflip_general(dt, 0.0, 0.0, 1.0, 0.0);
-}
-
-/*!
- \brief  FLIP scheme used in the 1986 paper from Brackbill
- */
-void FluidSim::map_g2p_flip_brackbill(float dt,
-                                      const scalar eulerian_symplecticity) {
-  // Brackbill's method is equivalent to FLIP with explicit Euler applied
-  // on the Lagrangian velocity, with an additional positional damping used
-  map_g2p_aflip_general(dt, 1.0, 0.0, eulerian_symplecticity, 0.0);
-}
-
-/*!
- \brief  FLIP scheme from Bridson
- */
-void FluidSim::map_g2p_flip_bridson(float dt, const scalar lagrangian_ratio) {
-  // Bridson's method is equivalent to FLIP with symplectic Euler applied
-  // on the Lagrangian velocity
-  map_g2p_aflip_general(dt, lagrangian_ratio, 1.0, 1.0, 0.0);
-}
-
-/*!
- \brief  FLIP scheme used in the APIC paper from Jiang et al.
- */
-void FluidSim::map_g2p_flip_jiang(float dt, const scalar lagrangian_ratio) {
-  // Jiang's method is equivalent to FLIP with explicit Euler applied
-  // on the Lagrangian velocity
-  map_g2p_aflip_general(dt, lagrangian_ratio, 0.0, 1.0, 0.0);
-}
-
-/*!
- \brief  APIC scheme
- */
-void FluidSim::map_g2p_apic(float dt) {
-  // APIC is a specific case of a more general Affine FLIP scheme
-  map_g2p_aflip_general(dt, 0.0, 0.0, 1.0, 1.0);
-}
-
-/*!
- \brief  Affine FLIP scheme modified from the FLIP scheme by Brackbill
- */
-void FluidSim::map_g2p_aflip_brackbill(float dt,
-                                       const scalar eulerian_symplecticity) {
-  // Brackbill's method is equivalent to FLIP with explicit Euler applied
-  // on the Lagrangian velocity, with an additional positional damping used
-  map_g2p_aflip_general(dt, 1.0, 0.0, eulerian_symplecticity, 1.0);
-}
-
-/*!
- \brief  Affine FLIP scheme modified from the FLIP scheme by Bridson
- */
-void FluidSim::map_g2p_aflip_bridson(float dt, const scalar lagrangian_ratio) {
-  // Bridson's method is equivalent to FLIP with symplectic Euler applied
-  // on the Lagrangian velocity
-  map_g2p_aflip_general(dt, lagrangian_ratio, 1.0, 1.0, 1.0);
-}
-
-/*!
- \brief  Affine FLIP scheme modified from the FLIP scheme by Jiang et al.
- */
-void FluidSim::map_g2p_aflip_jiang(float dt, const scalar lagrangian_ratio) {
-  // Jiang's method is equivalent to FLIP with explicit Euler applied
-  // on the Lagrangian velocity
-  map_g2p_aflip_general(dt, lagrangian_ratio, 0.0, 1.0, 1.0);
 }
 
 /*!
