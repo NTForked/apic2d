@@ -23,6 +23,7 @@ IT_PIC: original particle-in-cell (PIC)
 IT_FLIP_BRACKBILL: Jeremiah U. Brackbill's FLIP scheme
 IT_FLIP_ZHU_BRIDSON: Yongning Zhu and Robert Bridson's FLIP scheme
 IT_FLIP_JIANG: Chenfanfu Jiang's FLIP scheme
+IT_RPIC: rotational particle-in-cell (RPIC)
 IT_APIC: affine particle-in-cell (APIC)
 IT_AFLIP_BRACKBILL: affine version of Brackbill's FLIP
 IT_AFLIP_ZHU_BRIDSON: Affine version of Zhu & Bridson's FLIP
@@ -37,14 +38,16 @@ Vector2s lagrangian_velocity = p.v;
 
 p.v = next_grid_velocity +
       (lagrangian_velocity - original_grid_velocity) * lagrangian_ratio;
-p.c = get_affine_matrix(p.x) * affine_ratio;
+Matrix2s C = get_affine_matrix(p.x);
+p.c = C * (affine_stretching_ratio + affine_rotational_ratio) * 0.5 +
+      C.transpose() * (affine_stretching_ratio - affine_rotational_ratio) * 0.5;
 p.x += (original_grid_velocity +
         (next_grid_velocity - original_grid_velocity) * eulerian_symplecticity +
         (lagrangian_velocity - original_grid_velocity) * lagrangian_ratio *
             lagrangian_symplecticity) *
        dt;
 ```
-where `p.v` is the Lagrangian particle velocity, `p.c` is the specific angular momentum tensor used in affine integration, `p.x` is the particle position. The PIC then corresponds to AFLIP with zero Lagrangian ratio (how much Lagrangian velocity is preserved), zero affine ratio (how much affine momentum is preserved), full Eulerian symplecticity (how symplectic the Eulerian part of the velocity is), and zero Lagrangian sympecticity (how symplectic the Lagrangian part of the velocity is).
+where `p.v` is the Lagrangian particle velocity, `p.c` is the specific angular momentum tensor used in affine integration, `p.x` is the particle position. The PIC then corresponds to AFLIP with zero Lagrangian ratio (how much Lagrangian velocity is preserved), zero affine stretching ratio (how much the stretching part of the affine momentum is preserved), zero affine rotational ratio (how much the rotational part of the affine momentum is preserved), full Eulerian symplecticity (how symplectic the Eulerian part of the velocity is), and zero Lagrangian sympecticity (how symplectic the Lagrangian part of the velocity is).
 
 Dependencies
 --------------------

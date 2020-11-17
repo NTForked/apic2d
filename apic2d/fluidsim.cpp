@@ -56,6 +56,7 @@
 // IT_FLIP_BRACKBILL: Jeremiah U. Brackbill's FLIP scheme
 // IT_FLIP_ZHU_BRIDSON: Yongning Zhu and Robert Bridson's FLIP scheme
 // IT_FLIP_JIANG: Chenfanfu Jiang's FLIP scheme
+// IT_RPIC: rotational particle-in-cell (RPIC)
 // IT_APIC: affine particle-in-cell (APIC)
 // IT_AFLIP_BRACKBILL: affine version of Brackbill's FLIP
 // IT_AFLIP_ZHU_BRIDSON: affine version of Zhu & Bridson's FLIP
@@ -269,54 +270,59 @@ void FluidSim::advance(scalar dt) {
   switch (integration_scheme) {
     case IT_PIC:
       // PIC is a specific case of a more general (Affine) FLIP scheme
-      map_g2p_aflip_general(dt, 0.0, 0.0, 1.0, 0.0);
+      map_g2p_aflip_general(dt, 0.0, 0.0, 1.0, 0.0, 0.0);
       break;
 
     case IT_FLIP_BRACKBILL:
       // FLIP scheme used in the 1986 paper from Brackbill
       // Brackbill's method is equivalent to FLIP with explicit Euler applied
       // on the Lagrangian velocity, with an additional positional damping used
-      map_g2p_aflip_general(dt, 1.0, 0.0, 0.5, 0.0);
+      map_g2p_aflip_general(dt, 1.0, 0.0, 0.5, 0.0, 0.0);
       break;
 
     case IT_FLIP_ZHU_BRIDSON:
       // FLIP scheme from Zhu and Bridson (without RK2)
       // Zhu & Bridson's method is equivalent to FLIP with symplectic Euler applied
       // on the Lagrangian velocity
-      map_g2p_aflip_general(dt, lagrangian_ratio, 1.0, 1.0, 0.0);
+      map_g2p_aflip_general(dt, lagrangian_ratio, 1.0, 1.0, 0.0, 0.0);
       break;
 
     case IT_FLIP_JIANG:
       // FLIP scheme used in the APIC paper from Jiang et al.
       // Jiang's method is equivalent to FLIP with explicit Euler applied
       // on the Lagrangian velocity
-      map_g2p_aflip_general(dt, lagrangian_ratio, 0.0, 1.0, 0.0);
+      map_g2p_aflip_general(dt, lagrangian_ratio, 0.0, 1.0, 0.0, 0.0);
+      break;
+
+    case IT_RPIC:
+      // RPIC is a specific case of a more general Affine FLIP scheme
+      map_g2p_aflip_general(dt, 0.0, 0.0, 1.0, 0.0, 1.0);
       break;
 
     case IT_APIC:
       // APIC is a specific case of a more general Affine FLIP scheme
-      map_g2p_aflip_general(dt, 0.0, 0.0, 1.0, 1.0);
+      map_g2p_aflip_general(dt, 0.0, 0.0, 1.0, 1.0, 1.0);
       break;
 
     case IT_AFLIP_BRACKBILL:
       // Affine FLIP scheme modified from the FLIP scheme by Brackbill
       // Brackbill's method is equivalent to FLIP with explicit Euler applied
       // on the Lagrangian velocity, with an additional positional damping used
-      map_g2p_aflip_general(dt, 1.0, 0.0, 0.5, 1.0);
+      map_g2p_aflip_general(dt, 1.0, 0.0, 0.5, 1.0, 1.0);
       break;
 
     case IT_AFLIP_ZHU_BRIDSON:
       // Affine FLIP scheme modified from the FLIP scheme by Zhu & Bridson
       // Zhu & Bridson's method is equivalent to FLIP with symplectic Euler applied
       // on the Lagrangian velocity
-      map_g2p_aflip_general(dt, lagrangian_ratio, 1.0, 1.0, 1.0);
+      map_g2p_aflip_general(dt, lagrangian_ratio, 1.0, 1.0, 1.0, 1.0);
       break;
 
     case IT_AFLIP_JIANG:
       // Affine FLIP scheme modified from the FLIP scheme by Jiang
       // Jiang's method is equivalent to FLIP with explicit Euler applied
       // on the Lagrangian velocity
-      map_g2p_aflip_general(dt, lagrangian_ratio, 0.0, 1.0, 1.0);
+      map_g2p_aflip_general(dt, lagrangian_ratio, 0.0, 1.0, 1.0, 1.0);
       break;
 
     default:
@@ -801,7 +807,8 @@ void FluidSim::map_p2g() {
 void FluidSim::map_g2p_aflip_general(float dt, const scalar lagrangian_ratio,
                                      const scalar lagrangian_symplecticity,
                                      const scalar eulerian_symplecticity,
-                                     const scalar affine_ratio) {
+                                     const scalar affine_stretching_ratio,
+                                     const scalar affine_rotational_ratio) {
   for (Particle& p : particles) {
     if (p.type == PT_SOLID) continue;
 
@@ -811,7 +818,11 @@ void FluidSim::map_g2p_aflip_general(float dt, const scalar lagrangian_ratio,
 
     p.v = next_grid_velocity +
           (lagrangian_velocity - original_grid_velocity) * lagrangian_ratio;
-    p.c = get_affine_matrix(p.x) * affine_ratio;
+
+    Matrix2s C = get_affine_matrix(p.x);
+    p.c = C * (affine_stretching_ratio + affine_rotational_ratio) * 0.5 +
+          C.transpose() * (affine_stretching_ratio - affine_rotational_ratio) *
+              0.5;
     p.x += (original_grid_velocity +
             (next_grid_velocity - original_grid_velocity) *
                 eulerian_symplecticity +

@@ -54,6 +54,7 @@ class FluidSim {
     IT_FLIP_BRACKBILL,
     IT_FLIP_ZHU_BRIDSON,
     IT_FLIP_JIANG,
+    IT_RPIC,
     IT_APIC,
     IT_AFLIP_BRACKBILL,
     IT_AFLIP_ZHU_BRIDSON,
@@ -154,7 +155,8 @@ class FluidSim {
   void map_g2p_aflip_general(float dt, const scalar lagrangian_ratio,
                              const scalar lagrangian_symplecticity,
                              const scalar eulerian_symplecticity,
-                             const scalar affine_ratio);
+                             const scalar affine_stretching_ratio,
+                             const scalar affine_rotational_ratio);
 
   void save_velocity();
 
