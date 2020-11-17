@@ -36,8 +36,8 @@ Vector2s lagrangian_velocity = p.v;
 p.v = next_grid_velocity +
       (lagrangian_velocity - original_grid_velocity) * lagrangian_ratio;
 p.c = get_affine_matrix(p.x) * affine_ratio;
-p.x += (next_grid_velocity +
-        (original_grid_velocity - next_grid_velocity) * eulerian_symplecticity +
+p.x += (original_grid_velocity +
+        (next_grid_velocity - original_grid_velocity) * eulerian_symplecticity +
         (lagrangian_velocity - original_grid_velocity) * lagrangian_ratio *
             lagrangian_symplecticity) *
        dt;
