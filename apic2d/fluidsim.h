@@ -55,6 +55,9 @@ class FluidSim {
     IT_FLIP_BRIDSON,
     IT_FLIP_JIANG,
     IT_APIC,
+    IT_AFLIP_BRACKBILL,
+    IT_AFLIP_BRIDSON,
+    IT_AFLIP_JIANG,
 
     IT_COUNT
   };
@@ -150,9 +153,15 @@ class FluidSim {
   /*! different G2P schemes */
   void map_g2p_pic(float dt);
   void map_g2p_apic(float dt);
-  void map_g2p_flip_brackbill(float dt, const scalar coeff);
-  void map_g2p_flip_bridson(float dt, const scalar coeff);
-  void map_g2p_flip_jiang(float dt, const scalar coeff);
+  void map_g2p_flip_brackbill(float dt, const scalar damping);
+  void map_g2p_flip_bridson(float dt, const scalar lagrangian_ratio);
+  void map_g2p_flip_jiang(float dt, const scalar lagrangian_ratio);
+  void map_g2p_aflip_brackbill(float dt, const scalar damping);
+  void map_g2p_aflip_bridson(float dt, const scalar lagrangian_ratio);
+  void map_g2p_aflip_jiang(float dt, const scalar lagrangian_ratio);
+  void map_g2p_aflip_general(float dt, const scalar lagrangian_ratio,
+                             const scalar lagrangian_symplecticity,
+                             const scalar damping, const scalar affine_ratio);
 
   void save_velocity();
 

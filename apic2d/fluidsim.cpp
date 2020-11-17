@@ -1,8 +1,27 @@
 // Copyright 2016 Raymond Yun Fei, Christopher Batty, Robert Bridson
 //
+// The papers implemented here include:
+//
+// Jiang, Chenfanfu, et al. "The affine particle-in-cell method." ACM
+// Transactions on Graphics (TOG) 34.4 (2015): 51.
+//
+// Batty, Christopher, Florence Bertails, and Robert Bridson. "A fast
+// variational framework for accurate solid-fluid coupling." ACM Transactions on
+// Graphics (TOG). Vol. 26. No. 3. ACM, 2007.
+//
+// Ando, Ryoichi, Nils Thurey, and Reiji Tsuruno. "Preserving fluid sheets with
+// adaptively sampled anisotropic particles." IEEE transactions on visualization
+// and computer graphics 18.8 (2012): 1202-1214.
+//
+// Brackbill, Jeremiah U., and Hans M. Ruppel. "FLIP: A method for adaptively
+// zoned, particle-in-cell calculations of fluid flows in two dimensions."
+// Journal of Computational physics 65.2 (1986): 314-343.
+//
+// The generalized FLIP is contributed by Qi Guo
+//
 // Licensed under the Apache License,
 // Version 2.0(the "License");
-// you may not use this file except in compliance with the License.
+// You may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
 //     http://www.apache.org/licenses/LICENSE-2.0
@@ -29,6 +48,18 @@
 
 #include "openglutils.h"
 
+// Change here to try differnt integration scheme, options:
+// IT_PIC: original particle-in-cell (PIC)
+// IT_FLIP_BRACKBILL: Jeremiah U. Brackbill's FLIP scheme
+// IT_FLIP_BRIDSON: Robert Bridson's FLIP scheme
+// IT_FLIP_JIANG: Chenfanfu Jiang's FLIP scheme
+// IT_APIC: affine particle-in-cell (APIC)
+// IT_AFLIP_BRACKBILL: Affine version of Brackbill's FLIP
+// IT_AFLIP_BRIDSON: Affine version of Bridson's FLIP
+// IT_AFLIP_JIANG: Affine version of Jiang's FLIP
+const FluidSim::INTEGRATOR_TYPE integration_scheme = FluidSim::IT_APIC;
+
+const scalar flip_coefficient = 0.97f;
 const scalar source_velocity = 40.0;
 const int particle_correction_step = 1;
 
@@ -205,20 +236,11 @@ void FluidSim::correct(scalar dt) {
 
 // The main fluid simulation step
 void FluidSim::advance(scalar dt) {
-  // Change here to try differnt integration scheme
-  const INTEGRATOR_TYPE integration_scheme = IT_APIC;
-  const scalar flip_coefficient = 0.95f;
-
   // Passively advect particles
   m_sorter->sort(this);
 
   map_p2g();
-
-  if (integration_scheme == IT_FLIP_JIANG ||
-      integration_scheme == IT_FLIP_BRACKBILL ||
-      integration_scheme == IT_FLIP_BRIDSON) {
-    save_velocity();
-  }
+  save_velocity();
 
   add_force(dt);
   project(dt);
@@ -259,6 +281,18 @@ void FluidSim::advance(scalar dt) {
 
     case IT_APIC:
       map_g2p_apic(dt);
+      break;
+
+    case IT_AFLIP_BRACKBILL:
+      map_g2p_aflip_brackbill(dt, flip_coefficient);
+      break;
+
+    case IT_AFLIP_BRIDSON:
+      map_g2p_aflip_bridson(dt, flip_coefficient);
+      break;
+
+    case IT_AFLIP_JIANG:
+      map_g2p_aflip_jiang(dt, flip_coefficient);
       break;
 
     default:
@@ -740,74 +774,95 @@ void FluidSim::map_p2g() {
  \brief  PIC scheme
  */
 void FluidSim::map_g2p_pic(float dt) {
-  for (Particle& p : particles) {
-    if (p.type == PT_SOLID) continue;
+  // PIC is a specific case of a more general (Affine) FLIP scheme
+  map_g2p_aflip_general(dt, 0.0, 0.0, 0.0, 0.0);
+}
 
-    p.v = get_velocity(p.x);
-    p.x += p.v * dt;
-  }
+/*!
+ \brief  FLIP scheme used in the 1986 paper from Brackbill
+ */
+void FluidSim::map_g2p_flip_brackbill(float dt, const scalar damping) {
+  // Brackbill's method is equivalent to FLIP with explicit Euler applied
+  // on the Lagrangian velocity, with an additional positional damping used
+  map_g2p_aflip_general(dt, 1.0, 0.0, damping, 0.0);
+}
+
+/*!
+ \brief  FLIP scheme from Bridson
+ */
+void FluidSim::map_g2p_flip_bridson(float dt, const scalar lagrangian_ratio) {
+  // Bridson's method is equivalent to FLIP with symplectic Euler applied
+  // on the Lagrangian velocity
+  map_g2p_aflip_general(dt, lagrangian_ratio, 1.0, 0.0, 0.0);
+}
+
+/*!
+ \brief  FLIP scheme used in the APIC paper from Jiang et al.
+ */
+void FluidSim::map_g2p_flip_jiang(float dt, const scalar lagrangian_ratio) {
+  // Jiang's method is equivalent to FLIP with explicit Euler applied
+  // on the Lagrangian velocity
+  map_g2p_aflip_general(dt, lagrangian_ratio, 0.0, 0.0, 0.0);
 }
 
 /*!
  \brief  APIC scheme
  */
 void FluidSim::map_g2p_apic(float dt) {
-  for (Particle& p : particles) {
-    if (p.type == PT_SOLID) continue;
-
-    p.v = get_velocity(p.x);
-    p.c = get_affine_matrix(p.x);
-    p.x += p.v * dt;
-  }
+  // APIC is a specific case of a more general Affine FLIP scheme
+  map_g2p_aflip_general(dt, 0.0, 0.0, 0.0, 1.0);
 }
 
 /*!
- \brief  FLIP scheme used in the 1986 paper from Brackbill
+ \brief  Affine FLIP scheme modified from the FLIP scheme by Brackbill
  */
-void FluidSim::map_g2p_flip_brackbill(float dt, const scalar coeff) {
+void FluidSim::map_g2p_aflip_brackbill(float dt, const scalar damping) {
+  // Brackbill's method is equivalent to FLIP with explicit Euler applied
+  // on the Lagrangian velocity, with an additional positional damping used
+  map_g2p_aflip_general(dt, 1.0, 0.0, damping, 1.0);
+}
+
+/*!
+ \brief  Affine FLIP scheme modified from the FLIP scheme by Bridson
+ */
+void FluidSim::map_g2p_aflip_bridson(float dt, const scalar lagrangian_ratio) {
+  // Bridson's method is equivalent to FLIP with symplectic Euler applied
+  // on the Lagrangian velocity
+  map_g2p_aflip_general(dt, lagrangian_ratio, 1.0, 0.0, 1.0);
+}
+
+/*!
+ \brief  Affine FLIP scheme modified from the FLIP scheme by Jiang et al.
+ */
+void FluidSim::map_g2p_aflip_jiang(float dt, const scalar lagrangian_ratio) {
+  // Jiang's method is equivalent to FLIP with explicit Euler applied
+  // on the Lagrangian velocity
+  map_g2p_aflip_general(dt, lagrangian_ratio, 0.0, 0.0, 1.0);
+}
+
+/*!
+ \brief  A general affine FLIP scheme that unifies all the other AFLIP schemes
+         used in this code
+ */
+void FluidSim::map_g2p_aflip_general(float dt, const scalar lagrangian_ratio,
+                                     const scalar lagrangian_symplecticity,
+                                     const scalar damping,
+                                     const scalar affine_ratio) {
   for (Particle& p : particles) {
     if (p.type == PT_SOLID) continue;
 
     Vector2s next_grid_velocity = get_velocity(p.x);
     Vector2s original_grid_velocity = get_saved_velocity(p.x);
-    Vector2s diff_grid_velocity = next_grid_velocity - original_grid_velocity;
-
-    p.v += diff_grid_velocity;
-    p.x += (original_grid_velocity + diff_grid_velocity * coeff) * dt;
-  }
-}
-
-/*!
- \brief  FLIP scheme from Bridson
- */
-void FluidSim::map_g2p_flip_bridson(float dt, const scalar coeff) {
-  for (Particle& p : particles) {
-    if (p.type == PT_SOLID) continue;
-
-    Vector2s next_grid_velocity = get_velocity(p.x);
-    Vector2s original_grid_velocity = get_saved_velocity(p.x);
-    Vector2s diff_grid_velocity = next_grid_velocity - original_grid_velocity;
+    Vector2s lagrangian_velocity = p.v;
 
     p.v = next_grid_velocity +
-          (p.v + diff_grid_velocity - next_grid_velocity) * coeff;
-    p.x += p.v * dt;
-  }
-}
-
-/*!
- \brief  FLIP scheme used in the APIC paper from Jiang et al.
- */
-void FluidSim::map_g2p_flip_jiang(float dt, const scalar coeff) {
-  for (Particle& p : particles) {
-    if (p.type == PT_SOLID) continue;
-
-    Vector2s next_grid_velocity = get_velocity(p.x);
-    Vector2s original_grid_velocity = get_saved_velocity(p.x);
-    Vector2s diff_grid_velocity = next_grid_velocity - original_grid_velocity;
-
-    p.v = next_grid_velocity +
-          (p.v + diff_grid_velocity - next_grid_velocity) * coeff;
-    p.x += next_grid_velocity * dt;
+          (lagrangian_velocity - original_grid_velocity) * lagrangian_ratio;
+    p.c = get_affine_matrix(p.x) * affine_ratio;
+    p.x += (next_grid_velocity +
+            (original_grid_velocity - next_grid_velocity) * damping +
+            (lagrangian_velocity - original_grid_velocity) * lagrangian_ratio *
+                lagrangian_symplecticity) *
+           dt;
   }
 }
 
