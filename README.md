@@ -11,6 +11,8 @@ Batty, Christopher, Florence Bertails, and Robert Bridson. "A fast variational f
 
 Ando, Ryoichi, Nils Thurey, and Reiji Tsuruno. "Preserving fluid sheets with adaptively sampled anisotropic particles." IEEE transactions on visualization and computer graphics 18.8 (2012): 1202-1214.
 
+Zhu, Yongning, and Robert Bridson. "Animating sand as a fluid." ACM Transactions on Graphics (TOG) 24.3 (2005): 965-972.
+
 Brackbill, Jeremiah U., and Hans M. Ruppel. "FLIP: A method for adaptively zoned, particle-in-cell calculations of fluid flows in two dimensions." Journal of Computational physics 65.2 (1986): 314-343.
 
 The general FLIP integrator is contributed by Qi Guo.
@@ -19,11 +21,11 @@ It contains multiple integrators that you may switch and compare through changin
 ```
 IT_PIC: original particle-in-cell (PIC)
 IT_FLIP_BRACKBILL: Jeremiah U. Brackbill's FLIP scheme
-IT_FLIP_BRIDSON: Robert Bridson's FLIP scheme
+IT_FLIP_ZHU_BRIDSON: Yongning Zhu and Robert Bridson's FLIP scheme
 IT_FLIP_JIANG: Chenfanfu Jiang's FLIP scheme
 IT_APIC: affine particle-in-cell (APIC)
 IT_AFLIP_BRACKBILL: Affine version of Brackbill's FLIP
-IT_AFLIP_BRIDSON: Affine version of Bridson's FLIP
+IT_AFLIP_ZHU_BRIDSON: Affine version of Zhu & Bridson's FLIP
 IT_AFLIP_JIANG: Affine version of Jiang's FLIP
 ```
 

@@ -13,6 +13,9 @@
 // adaptively sampled anisotropic particles." IEEE transactions on visualization
 // and computer graphics 18.8 (2012): 1202-1214.
 //
+// Zhu, Yongning, and Robert Bridson. "Animating sand as a fluid." ACM
+// Transactions on Graphics (TOG) 24.3 (2005): 965-972.
+//
 // Brackbill, Jeremiah U., and Hans M. Ruppel. "FLIP: A method for adaptively
 // zoned, particle-in-cell calculations of fluid flows in two dimensions."
 // Journal of Computational physics 65.2 (1986): 314-343.
@@ -51,12 +54,12 @@
 // Change here to try differnt integration scheme, options:
 // IT_PIC: original particle-in-cell (PIC)
 // IT_FLIP_BRACKBILL: Jeremiah U. Brackbill's FLIP scheme
-// IT_FLIP_BRIDSON: Robert Bridson's FLIP scheme
+// IT_FLIP_ZHU_BRIDSON: Yongning Zhu and Robert Bridson's FLIP scheme
 // IT_FLIP_JIANG: Chenfanfu Jiang's FLIP scheme
 // IT_APIC: affine particle-in-cell (APIC)
-// IT_AFLIP_BRACKBILL: Affine version of Brackbill's FLIP
-// IT_AFLIP_BRIDSON: Affine version of Bridson's FLIP
-// IT_AFLIP_JIANG: Affine version of Jiang's FLIP
+// IT_AFLIP_BRACKBILL: affine version of Brackbill's FLIP
+// IT_AFLIP_ZHU_BRIDSON: affine version of Zhu & Bridson's FLIP
+// IT_AFLIP_JIANG: affine version of Jiang's FLIP
 const FluidSim::INTEGRATOR_TYPE integration_scheme =
     FluidSim::IT_APIC;
 
@@ -276,9 +279,9 @@ void FluidSim::advance(scalar dt) {
       map_g2p_aflip_general(dt, 1.0, 0.0, 0.5, 0.0);
       break;
 
-    case IT_FLIP_BRIDSON:
-      // FLIP scheme from Bridson (without RK2)
-      // Bridson's method is equivalent to FLIP with symplectic Euler applied
+    case IT_FLIP_ZHU_BRIDSON:
+      // FLIP scheme from Zhu and Bridson (without RK2)
+      // Zhu & Bridson's method is equivalent to FLIP with symplectic Euler applied
       // on the Lagrangian velocity
       map_g2p_aflip_general(dt, lagrangian_ratio, 1.0, 1.0, 0.0);
       break;
@@ -302,9 +305,9 @@ void FluidSim::advance(scalar dt) {
       map_g2p_aflip_general(dt, 1.0, 0.0, 0.5, 1.0);
       break;
 
-    case IT_AFLIP_BRIDSON:
-      // Affine FLIP scheme modified from the FLIP scheme by Bridson
-      // Bridson's method is equivalent to FLIP with symplectic Euler applied
+    case IT_AFLIP_ZHU_BRIDSON:
+      // Affine FLIP scheme modified from the FLIP scheme by Zhu & Bridson
+      // Zhu & Bridson's method is equivalent to FLIP with symplectic Euler applied
       // on the Lagrangian velocity
       map_g2p_aflip_general(dt, lagrangian_ratio, 1.0, 1.0, 1.0);
       break;
