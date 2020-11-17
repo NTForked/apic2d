@@ -161,7 +161,8 @@ class FluidSim {
   void map_g2p_aflip_jiang(float dt, const scalar lagrangian_ratio);
   void map_g2p_aflip_general(float dt, const scalar lagrangian_ratio,
                              const scalar lagrangian_symplecticity,
-                             const scalar damping, const scalar affine_ratio);
+                             const scalar eulerian_symplecticity,
+                             const scalar affine_ratio);
 
   void save_velocity();
 

@@ -781,10 +781,11 @@ void FluidSim::map_g2p_pic(float dt) {
 /*!
  \brief  FLIP scheme used in the 1986 paper from Brackbill
  */
-void FluidSim::map_g2p_flip_brackbill(float dt, const scalar damping) {
+void FluidSim::map_g2p_flip_brackbill(float dt,
+                                      const scalar eulerian_symplecticity) {
   // Brackbill's method is equivalent to FLIP with explicit Euler applied
   // on the Lagrangian velocity, with an additional positional damping used
-  map_g2p_aflip_general(dt, 1.0, 0.0, damping, 0.0);
+  map_g2p_aflip_general(dt, 1.0, 0.0, eulerian_symplecticity, 0.0);
 }
 
 /*!
@@ -846,7 +847,7 @@ void FluidSim::map_g2p_aflip_jiang(float dt, const scalar lagrangian_ratio) {
  */
 void FluidSim::map_g2p_aflip_general(float dt, const scalar lagrangian_ratio,
                                      const scalar lagrangian_symplecticity,
-                                     const scalar damping,
+                                     const scalar eulerian_symplecticity,
                                      const scalar affine_ratio) {
   for (Particle& p : particles) {
     if (p.type == PT_SOLID) continue;
@@ -859,7 +860,8 @@ void FluidSim::map_g2p_aflip_general(float dt, const scalar lagrangian_ratio,
           (lagrangian_velocity - original_grid_velocity) * lagrangian_ratio;
     p.c = get_affine_matrix(p.x) * affine_ratio;
     p.x += (next_grid_velocity +
-            (original_grid_velocity - next_grid_velocity) * damping +
+            (original_grid_velocity - next_grid_velocity) *
+                eulerian_symplecticity +
             (lagrangian_velocity - original_grid_velocity) * lagrangian_ratio *
                 lagrangian_symplecticity) *
            dt;

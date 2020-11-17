@@ -37,12 +37,12 @@ p.v = next_grid_velocity +
       (lagrangian_velocity - original_grid_velocity) * lagrangian_ratio;
 p.c = get_affine_matrix(p.x) * affine_ratio;
 p.x += (next_grid_velocity +
-        (original_grid_velocity - next_grid_velocity) * damping +
+        (original_grid_velocity - next_grid_velocity) * eulerian_symplecticity +
         (lagrangian_velocity - original_grid_velocity) * lagrangian_ratio *
             lagrangian_symplecticity) *
        dt;
 ```
-where `p.v` is the Lagrangian particle velocity, `p.c` is the specific angular momentum tensor used in affine integration, `p.x` is the particle position. The PIC then corresponds to AFLIP with zero Lagrangian ratio, zero affine ratio, zero damping, and zero Lagrangian sympecticity.
+where `p.v` is the Lagrangian particle velocity, `p.c` is the specific angular momentum tensor used in affine integration, `p.x` is the particle position. The PIC then corresponds to AFLIP with zero Lagrangian ratio (how much Lagrangian velocity is preserved), zero affine ratio (how much affine momentum is preserved), zero Eulerian symplecticity (how symplectic of the Eulerian part of the velocity), and zero Lagrangian sympecticity (how symplectic of the Lagrangian part of the velocity).
 
 Dependencies
 --------------------
