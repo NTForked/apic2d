@@ -269,7 +269,7 @@ void FluidSim::advance(scalar dt) {
       break;
 
     case IT_FLIP_BRACKBILL:
-      map_g2p_flip_brackbill(dt, flip_coefficient);
+      map_g2p_flip_brackbill(dt, 0.5);
       break;
 
     case IT_FLIP_BRIDSON:
@@ -285,7 +285,7 @@ void FluidSim::advance(scalar dt) {
       break;
 
     case IT_AFLIP_BRACKBILL:
-      map_g2p_aflip_brackbill(dt, flip_coefficient);
+      map_g2p_aflip_brackbill(dt, 0.5);
       break;
 
     case IT_AFLIP_BRIDSON:
