@@ -15,8 +15,6 @@ Zhu, Yongning, and Robert Bridson. "Animating sand as a fluid." ACM Transactions
 
 Brackbill, Jeremiah U., and Hans M. Ruppel. "FLIP: A method for adaptively zoned, particle-in-cell calculations of fluid flows in two dimensions." Journal of Computational physics 65.2 (1986): 314-343.
 
-The generalized FLIP is co-developed with Qi Guo and Ming Gao.
-
 It contains multiple integrators that you may switch and compare through changing the `integration_scheme` variable in the code. Its value can be one of the following:
 ```
 IT_PIC: original particle-in-cell (PIC)
@@ -29,25 +27,6 @@ IT_AFLIP_BRACKBILL: affine version of Brackbill's FLIP
 IT_AFLIP_ZHU_BRIDSON: Affine version of Zhu & Bridson's FLIP
 IT_AFLIP_JIANG: affine version of Jiang's FLIP
 ```
-
-We also noticed that each of these integrators is a specific case of a more general one, where we have a general integrator for affine FLIP (AFLIP) integration (refer to the `map_g2p_aflip_general` function in the code):
-```
-Vector2s next_grid_velocity = get_velocity(p.x);
-Vector2s original_grid_velocity = get_saved_velocity(p.x);
-Vector2s lagrangian_velocity = p.v;
-
-p.v = next_grid_velocity +
-      (lagrangian_velocity - original_grid_velocity) * lagrangian_ratio;
-Matrix2s C = get_affine_matrix(p.x);
-p.c = C * (affine_stretching_ratio + affine_rotational_ratio) * 0.5 +
-      C.transpose() * (affine_stretching_ratio - affine_rotational_ratio) * 0.5;
-p.x += (original_grid_velocity +
-        (next_grid_velocity - original_grid_velocity) * eulerian_symplecticity +
-        (lagrangian_velocity - original_grid_velocity) * lagrangian_ratio *
-            lagrangian_symplecticity) *
-       dt;
-```
-where `p.v` is the Lagrangian particle velocity, `p.c` is the specific angular momentum tensor used in affine integration, `p.x` is the particle position. The PIC then corresponds to AFLIP with zero Lagrangian ratio (how much Lagrangian velocity is preserved), zero affine stretching ratio (how much the stretching part of the affine momentum is preserved), zero affine rotational ratio (how much the rotational part of the affine momentum is preserved), full Eulerian symplecticity (how symplectic the Eulerian part of the velocity is), and zero Lagrangian sympecticity (how symplectic the Lagrangian part of the velocity is).
 
 Dependencies
 --------------------
