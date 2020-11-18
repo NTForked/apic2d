@@ -1,30 +1,8 @@
 // Copyright 2016 Raymond Yun Fei, Christopher Batty, Robert Bridson
 //
-// The papers implemented here include:
-//
-// Jiang, Chenfanfu, et al. "The affine particle-in-cell method." ACM
-// Transactions on Graphics (TOG) 34.4 (2015): 51.
-//
-// Batty, Christopher, Florence Bertails, and Robert Bridson. "A fast
-// variational framework for accurate solid-fluid coupling." ACM Transactions on
-// Graphics (TOG). Vol. 26. No. 3. ACM, 2007.
-//
-// Ando, Ryoichi, Nils Thurey, and Reiji Tsuruno. "Preserving fluid sheets with
-// adaptively sampled anisotropic particles." IEEE transactions on visualization
-// and computer graphics 18.8 (2012): 1202-1214.
-//
-// Zhu, Yongning, and Robert Bridson. "Animating sand as a fluid." ACM
-// Transactions on Graphics (TOG) 24.3 (2005): 965-972.
-//
-// Brackbill, Jeremiah U., and Hans M. Ruppel. "FLIP: A method for adaptively
-// zoned, particle-in-cell calculations of fluid flows in two dimensions."
-// Journal of Computational physics 65.2 (1986): 314-343.
-//
-// The generalized FLIP is co-developed with Qi Guo and Ming Gao
-//
 // Licensed under the Apache License,
 // Version 2.0(the "License");
-// You may not use this file except in compliance with the License.
+// you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
 //     http://www.apache.org/licenses/LICENSE-2.0
