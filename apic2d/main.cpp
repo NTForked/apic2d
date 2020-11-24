@@ -59,8 +59,6 @@ int main(int argc, char **argv) {
               argv);
   Gluvi::camera = &cam;
   Gluvi::userDisplayFunc = display;
-  Gluvi::userMouseFunc = mouse;
-  Gluvi::userDragFunc = drag;
   glClearColor(1, 1, 1, 1);
 
   glutTimerFunc(1000, timer, 0);
@@ -84,24 +82,6 @@ int main(int argc, char **argv) {
 }
 
 void display(void) { sim.render(); }
-
-void mouse(int button, int state, int x, int y) {
-  Vector2s newmouse;
-  cam.transform_mouse(x, y, newmouse.data());
-  // double newmousetime=get_time_in_seconds();
-
-  oldmouse = newmouse;
-  // oldmousetime=newmousetime;
-}
-
-void drag(int x, int y) {
-  Vector2s newmouse;
-  cam.transform_mouse(x, y, newmouse.data());
-  // double newmousetime=get_time_in_seconds();
-
-  oldmouse = newmouse;
-  // oldmousetime=newmousetime;
-}
 
 void timer(int junk) {
   sim.advance(timestep);
