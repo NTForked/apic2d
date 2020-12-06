@@ -40,7 +40,7 @@
 // IT_AFLIP_ZHU_BRIDSON: affine version of Zhu & Bridson's FLIP
 // IT_AFLIP_JIANG: affine version of Jiang's FLIP
 const FluidSim::INTEGRATOR_TYPE integration_scheme =
-    FluidSim::IT_APIC;
+    FluidSim::IT_FLIP_BRACKBILL;
 
 const scalar brackbill_eulerian_symplecticity = 0.97f;
 const scalar lagrangian_ratio = 0.97f;
@@ -579,6 +579,14 @@ void FluidSim::solve_pressure(scalar dt) {
   }
   matrix.zero();
 
+  scalar eulerian_symplecticity = 1.0f;
+  if (integration_scheme == IT_FLIP_BRACKBILL ||
+      integration_scheme == IT_AFLIP_BRACKBILL) {
+    eulerian_symplecticity = brackbill_eulerian_symplecticity;
+  }
+
+  scalar p_term_coeff = dt / sqr(dx) * eulerian_symplecticity;
+
   // Build the linear system for pressure
   for (int j = 1; j < nj - 1; ++j) {
     for (int i = 1; i < ni - 1; ++i) {
@@ -590,7 +598,7 @@ void FluidSim::solve_pressure(scalar dt) {
           (u_weights(i, j) > 0.0 || u_weights(i + 1, j) > 0.0 ||
            v_weights(i, j) > 0.0 || v_weights(i, j + 1) > 0.0)) {
         // right neighbour
-        float term = u_weights(i + 1, j) * dt / sqr(dx);
+        float term = u_weights(i + 1, j) * p_term_coeff;
         float right_phi = liquid_phi(i + 1, j);
         if (right_phi < 0) {
           matrix.add_to_element(index, index, term);
@@ -603,7 +611,7 @@ void FluidSim::solve_pressure(scalar dt) {
         rhs[index] -= u_weights(i + 1, j) * u(i + 1, j) / dx;
 
         // left neighbour
-        term = u_weights(i, j) * dt / sqr(dx);
+        term = u_weights(i, j) * p_term_coeff;
         float left_phi = liquid_phi(i - 1, j);
         if (left_phi < 0) {
           matrix.add_to_element(index, index, term);
@@ -616,7 +624,7 @@ void FluidSim::solve_pressure(scalar dt) {
         rhs[index] += u_weights(i, j) * u(i, j) / dx;
 
         // top neighbour
-        term = v_weights(i, j + 1) * dt / sqr(dx);
+        term = v_weights(i, j + 1) * p_term_coeff;
         float top_phi = liquid_phi(i, j + 1);
         if (top_phi < 0) {
           matrix.add_to_element(index, index, term);
@@ -629,7 +637,7 @@ void FluidSim::solve_pressure(scalar dt) {
         rhs[index] -= v_weights(i, j + 1) * v(i, j + 1) / dx;
 
         // bottom neighbour
-        term = v_weights(i, j) * dt / sqr(dx);
+        term = v_weights(i, j) * p_term_coeff;
         float bot_phi = liquid_phi(i, j - 1);
         if (bot_phi < 0) {
           matrix.add_to_element(index, index, term);
@@ -666,7 +674,8 @@ void FluidSim::solve_pressure(scalar dt) {
           if (liquid_phi(i, j) >= 0 || liquid_phi(i - 1, j) >= 0)
             theta = fraction_inside(liquid_phi(i - 1, j), liquid_phi(i, j));
           if (theta < 0.01) theta = 0.01;
-          u(i, j) -= dt * (pressure[index] - pressure[index - 1]) / dx / theta;
+          u(i, j) -= dt * (pressure[index] - pressure[index - 1]) / dx / theta *
+                     eulerian_symplecticity;
           u_valid(i, j) = 1;
         }
       } else
@@ -682,7 +691,8 @@ void FluidSim::solve_pressure(scalar dt) {
           if (liquid_phi(i, j) >= 0 || liquid_phi(i, j - 1) >= 0)
             theta = fraction_inside(liquid_phi(i, j - 1), liquid_phi(i, j));
           if (theta < 0.01) theta = 0.01;
-          v(i, j) -= dt * (pressure[index] - pressure[index - ni]) / dx / theta;
+          v(i, j) -= dt * (pressure[index] - pressure[index - ni]) / dx /
+                     theta * eulerian_symplecticity;
           v_valid(i, j) = 1;
         }
       } else
