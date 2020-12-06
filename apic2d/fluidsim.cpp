@@ -42,6 +42,7 @@
 const FluidSim::INTEGRATOR_TYPE integration_scheme =
     FluidSim::IT_APIC;
 
+const scalar brackbill_eulerian_symplecticity = 0.97f;
 const scalar lagrangian_ratio = 0.97f;
 const scalar source_velocity = 40.0;
 const int particle_correction_step = 1;
@@ -255,7 +256,8 @@ void FluidSim::advance(scalar dt) {
       // FLIP scheme used in the 1986 paper from Brackbill
       // Brackbill's method is equivalent to FLIP with explicit Euler applied
       // on the Lagrangian velocity, with an additional positional damping used
-      map_g2p_aflip_general(dt, 1.0, 0.0, 0.5, 0.0, 0.0);
+      map_g2p_aflip_general(dt, 1.0, 0.0, brackbill_eulerian_symplecticity, 0.0,
+                            0.0);
       break;
 
     case IT_FLIP_ZHU_BRIDSON:
@@ -286,7 +288,8 @@ void FluidSim::advance(scalar dt) {
       // Affine FLIP scheme modified from the FLIP scheme by Brackbill
       // Brackbill's method is equivalent to FLIP with explicit Euler applied
       // on the Lagrangian velocity, with an additional positional damping used
-      map_g2p_aflip_general(dt, 1.0, 0.0, 0.5, 1.0, 1.0);
+      map_g2p_aflip_general(dt, 1.0, 0.0, brackbill_eulerian_symplecticity, 1.0,
+                            1.0);
       break;
 
     case IT_AFLIP_ZHU_BRIDSON:
